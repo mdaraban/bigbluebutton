@@ -1,4 +1,4 @@
-@import "imports/ui/stylesheets/variables/_all";
+@import "/imports/ui/stylesheets/variables/_all";
 
 $btn-default-color: $color-gray;
 $btn-default-bg: $color-white;
@@ -16,29 +16,30 @@ $btn-danger-color: $color-white;
 $btn-danger-bg: $color-danger;
 $btn-danger-border: $color-danger;
 
-$btn-border-size: 2px;
-$btn-border-radius: .2rem;
+$btn-border-size: $border-size;
+$btn-border-radius: $border-radius;
 $btn-font-weight: 600;
 $btn-spacing: .35rem;
 
 $btn-sm-font-size: $font-size-small * .85;
-$btn-sm-padding: .25rem .75rem;
+$btn-sm-padding: $sm-padding-y $sm-padding-x;
 
 $btn-md-font-size: $font-size-base * .85;
-$btn-md-padding: .375rem 1rem;
+$btn-md-padding: $md-padding-y $md-padding-x;
 
 $btn-lg-font-size: $font-size-large * .85;
-$btn-lg-padding: .5rem 1.25rem;
+$btn-lg-padding: $lg-padding-y $lg-padding-x;
+
+$btn-jumbo-font-size: 3rem;
+$btn-jumbo-padding: $jumbo-padding-y $jumbo-padding-x;
 
 /* Base
  * ==========
  */
 .button {
-  border: $btn-border-size solid transparent;
-  border-radius: $btn-border-radius;
+  @extend %btnFocus;
+
   font-weight: $btn-font-weight;
-  display: inline-block;
-  border-style: solid;
   line-height: 1.5;
   text-align: center;
   white-space: nowrap;
@@ -46,16 +47,6 @@ $btn-lg-padding: .5rem 1.25rem;
   cursor: pointer;
   user-select: none;
   transition: all .2s ease-in-out;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .15), 0 1px 1px rgba(0, 0, 0, .075);
-
-  &,
-  &:active {
-    &:focus {
-      outline: thin dotted;
-      outline: 5px auto -webkit-focus-ring-color;
-      outline-offset: -2px;
-    }
-  }
 
   &:hover,
   &:focus {
@@ -65,24 +56,42 @@ $btn-lg-padding: .5rem 1.25rem;
   &:active {
     background-image: none;
     outline: 0;
-    box-shadow: inset 0 3px 5px rgba(0, 0, 0, .125);
   }
 
-  &:disabled {
+  &[aria-disabled="true"] {
     cursor: not-allowed;
     opacity: .65;
     box-shadow: none;
+    pointer-events: none;
+  }
+
+  &,
+  &:active {
+    &:focus {
+      span:first-of-type::before {
+        border-radius: $focus-border-size;
+      }
+    }
   }
 }
 
 .buttonWrapper {
-  display: inline-block;
+  @extend %btnFocus;
+
+  &,
+  &:active {
+    &:focus {
+      span:first-of-type::before {
+        border-radius: 50%;
+      }
+    }
+  }
+
   line-height: 1.5;
   text-align: center;
   white-space: nowrap;
   vertical-align: middle;
   background: none;
-  border: 0;
   padding: 0 !important;
 }
 
@@ -91,13 +100,14 @@ $btn-lg-padding: .5rem 1.25rem;
     opacity: .85;
     display: block;
     margin-top: $btn-spacing;
-    font-size: 90%;
-    color: $color-white;
-    font-weight: $btn-font-weight;
+    color: #fff;
+    font-weight: normal;
     line-height: 1.5;
     text-align: center;
     white-space: nowrap;
     vertical-align: middle;
+
+
   }
 
   .buttonWrapper.sm & {
@@ -112,12 +122,23 @@ $btn-lg-padding: .5rem 1.25rem;
   }
 }
 
+.hideLabel {
+  font-size: 0;
+  height: 0;
+  width: 0;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden;
+  display: block;
+}
+
 .icon {
   width: 1.28571429em;
   text-align: center;
+  color: #fff;
 
   .buttonWrapper & {
-    font-size: 155%;
+    font-size: 125%;
   }
 
   & + .label {
@@ -138,13 +159,16 @@ $btn-lg-padding: .5rem 1.25rem;
   border-color: $border;
 
   &:hover,
-  &:focus {
+  &:focus,
+  .buttonWrapper:hover &,
+  .buttonWrapper:focus & {
     color: $color;
     background-color: $active-background;
     border-color: $active-border;
   }
 
-  &:active {
+  &:active,
+  .buttonWrapper:active & {
     color: $color;
     background-color: $active-background;
     border-color: $active-border;
@@ -157,14 +181,6 @@ $btn-lg-padding: .5rem 1.25rem;
       border-color: darken($border, 25%);
     }
   }
-
-  &:disabled {
-    &:focus,
-    &:hover {
-      background-color: $background;
-      border-color: $border;
-    }
-  }
 }
 
 @mixin button-ghost-variant($color, $variant) {
@@ -174,13 +190,16 @@ $btn-lg-padding: .5rem 1.25rem;
   border-color: $color;
 
   &:focus,
-  &:hover {
+  &:hover,
+  .buttonWrapper:hover &,
+  .buttonWrapper:focus & {
     color: $variant;
     background-color: $color;
     border-color: $color;
   }
 
-  &:active {
+  &:active,
+  .buttonWrapper:active & {
     color: $variant;
     background-color: $color;
     border-color: $color;
@@ -190,13 +209,6 @@ $btn-lg-padding: .5rem 1.25rem;
       color: $variant;
       background-color: darken($color, 17%);
       border-color: darken($color, 25%);
-    }
-  }
-
-  &:disabled {
-    &:focus,
-    &:hover {
-      border-color: lighten($color, 20%);
     }
   }
 }
@@ -216,6 +228,7 @@ $btn-lg-padding: .5rem 1.25rem;
 .danger {
   @include button-variant($btn-danger-color, $btn-danger-bg, $btn-danger-border);
 }
+
 
 /* Styles
  * ==========
@@ -245,9 +258,10 @@ $btn-lg-padding: .5rem 1.25rem;
 }
 
 .circle {
-  $btn-sm-padding-x: nth($btn-sm-padding, 1) / 2;
-  $btn-md-padding-x: nth($btn-md-padding, 1) / 2;
-  $btn-lg-padding-x: nth($btn-lg-padding, 1) / 2;
+  $btn-sm-padding-x: nth($btn-sm-padding, 2) / 2.75;
+  $btn-md-padding-x: nth($btn-md-padding, 2) / 2.75;
+  $btn-lg-padding-x: nth($btn-lg-padding, 2) / 2.75;
+  $btn-jumbo-padding-x: nth($btn-jumbo-padding, 2) / 2.75;
 
   border-radius: 50%;
 
@@ -264,6 +278,11 @@ $btn-lg-padding: .5rem 1.25rem;
   &.lg {
     padding-right: $btn-lg-padding-x;
     padding-left: $btn-lg-padding-x;
+  }
+
+  &.jumbo {
+    padding-right: $btn-jumbo-padding-x;
+    padding-left: $btn-jumbo-padding-x;
   }
 }
 
@@ -284,4 +303,9 @@ $btn-lg-padding: .5rem 1.25rem;
 .lg {
   font-size: $btn-lg-font-size;
   padding: $btn-lg-padding;
+}
+
+.jumbo {
+  font-size: $btn-jumbo-font-size;
+  padding: $btn-jumbo-padding;
 }

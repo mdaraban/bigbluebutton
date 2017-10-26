@@ -1,4 +1,5 @@
-import React, { Component, PropTypes } from 'react';
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 import { createContainer } from 'meteor/react-meteor-data';
 
 import VideoDock from './component';
@@ -18,5 +19,6 @@ class VideoDockContainer extends Component {
 }
 
 export default createContainer(() => {
-  return {};
+  const data = {};
+  return data;
 }, VideoDockContainer);

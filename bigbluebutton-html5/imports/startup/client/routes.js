@@ -1,36 +1,40 @@
 import React from 'react';
-import { Router, Route, Redirect, IndexRoute,
-  IndexRedirect, useRouterHistory } from 'react-router';
+import { Router, Route, Redirect, IndexRoute, useRouterHistory } from 'react-router';
 import { createHistory } from 'history';
 
-// route components
-import AppContainer from '../../ui/components/app/container';
-import {setCredentials, subscribeForData} from '../../ui/components/app/service';
-import UserListContainer from '../../ui/components/user-list/UserListContainer';
-import ChatContainer from '../../ui/components/chat/ChatContainer';
+import { joinRouteHandler, logoutRouteHandler, authenticatedRouteHandler } from './auth';
+import Base from './base';
+
+import LoadingScreen from '/imports/ui/components/loading-screen/component';
+import ChatContainer from '/imports/ui/components/chat/container';
+import UserListContainer from '/imports/ui/components/user-list/container';
 
 const browserHistory = useRouterHistory(createHistory)({
-  basename: '/html5client',
+  basename: Meteor.settings.public.app.basename,
 });
 
 export const renderRoutes = () => (
   <Router history={browserHistory}>
-    <Route path="/join/:meetingID/:userID/:authToken" onEnter={setCredentials} >
-      <IndexRedirect to="/" />
-      <Route path="/" component={AppContainer} onEnter={subscribeForData} >
-        <IndexRoute components={{}} />
-
-        <Route name="users" path="users" components={{
-          userList: UserListContainer,
-        }} />
-
-        <Route name="chat" path="users/chat/:chatID" components={{
+    <Route path="/logout" onEnter={logoutRouteHandler} />
+    <Route
+      path="/join"
+      component={LoadingScreen}
+      onEnter={joinRouteHandler}
+    />
+    <Route path="/" component={Base} onEnter={authenticatedRouteHandler} >
+      <IndexRoute components={{}} />
+      <Route name="users" path="users" components={{ userList: UserListContainer }} />
+      <Route
+        name="chat"
+        path="users/chat/:chatID"
+        components={{
           userList: UserListContainer,
           chat: ChatContainer,
-        }} />
-        <Redirect from="users/chat" to="/users/chat/public" />
-      </Route>
-      <Redirect from="*" to="/" />
+        }}
+      />
+      <Redirect from="users/chat" to="/users/chat/public" />
     </Route>
+    <Route name="error" path="/error/:errorCode" component={Base} />
+    <Redirect from="*" to="/error/404" />
   </Router>
 );

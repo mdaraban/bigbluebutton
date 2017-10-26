@@ -1,25 +1,22 @@
-import { isAllowedTo } from '/imports/startup/server/userPermissions';
-import { appendMessageHeader, publish } from '/imports/startup/server/helpers';
-import { redisConfig } from '/config';
+import { Meteor } from 'meteor/meteor';
+import { check } from 'meteor/check';
+import RedisPubSub from '/imports/startup/server/redis';
 
-Meteor.methods({
-  //meetingId: the meeting where the user is
-  //toKickUserId: the userid of the user to kick
-  //requesterUserId: the userid of the user that wants to kick
-  //authToken: the authToken of the user that wants to kick
-  kickUser(credentials, toKickUserId) {
-    const { meetingId, requesterUserId, requesterToken } = credentials;
-    let message;
-    if (isAllowedTo('kickUser', credentials)) {
-      message = {
-        payload: {
-          userid: toKickUserId,
-          ejected_by: requesterUserId,
-          meeting_id: meetingId,
-        },
-      };
-      message = appendMessageHeader('eject_user_from_meeting_request_message', message);
-      return publish(redisConfig.channels.toBBBApps.users, message);
-    }
-  },
-});
+export default function kickUser(credentials, userId) {
+  const REDIS_CONFIG = Meteor.settings.redis;
+  const CHANNEL = REDIS_CONFIG.channels.toAkkaApps;
+  const EVENT_NAME = 'EjectUserFromMeetingCmdMsg';
+
+  const { requesterUserId, meetingId } = credentials;
+
+  check(meetingId, String);
+  check(requesterUserId, String);
+  check(userId, String);
+
+  const payload = {
+    userId,
+    ejectedBy: requesterUserId,
+  };
+
+  return RedisPubSub.publishUserMessage(CHANNEL, EVENT_NAME, meetingId, userId, payload);
+}

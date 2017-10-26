@@ -1,11 +1,12 @@
-import React, { Component, PropTypes } from 'react';
+import React, { Component } from 'react';
+import ScreenshareContainer from '/imports/ui/components/screenshare/container';
 import styles from './styles.scss';
-import { FormattedMessage, FormattedDate } from 'react-intl';
 
 export default class VideoDock extends Component {
   render() {
     return (
       <div className={styles.videoDock}>
+        <ScreenshareContainer />
       </div>
     );
   }

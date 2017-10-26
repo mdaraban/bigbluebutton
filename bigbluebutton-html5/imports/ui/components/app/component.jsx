@@ -1,123 +1,182 @@
-import React, { Component, PropTypes } from 'react';
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
+import { defineMessages, injectIntl } from 'react-intl';
+import Modal from 'react-modal';
+import cx from 'classnames';
+
+import ModalContainer from '../modal/container';
+import NotificationsBarContainer from '../notifications-bar/container';
+import AudioNotificationContainer from '../audio/audio-notification/container';
+import AudioContainer from '../audio/container';
+import ChatNotificationContainer from '../chat/notification/container';
 import styles from './styles';
 
+const intlMessages = defineMessages({
+  userListLabel: {
+    id: 'app.userList.label',
+    description: 'Aria-label for Userlist Nav',
+  },
+  chatLabel: {
+    id: 'app.chat.label',
+    description: 'Aria-label for Chat Section',
+  },
+  mediaLabel: {
+    id: 'app.media.label',
+    description: 'Aria-label for Media Section',
+  },
+  actionsBarLabel: {
+    id: 'app.actionsBar.label',
+    description: 'Aria-label for ActionsBar Section',
+  },
+});
+
 const propTypes = {
+  fontSize: PropTypes.string,
   navbar: PropTypes.element,
   sidebar: PropTypes.element,
-  sidebarRight: PropTypes.element,
   media: PropTypes.element,
   actionsbar: PropTypes.element,
-  settings: PropTypes.element,
+  locale: PropTypes.string,
 };
 
-export default class App extends Component {
+const defaultProps = {
+  fontSize: '16px',
+  navbar: null,
+  sidebar: null,
+  media: null,
+  actionsbar: null,
+  locale: 'en',
+};
+
+class App extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      compactUserList: false, //TODO: Change this on userlist resize (?)
+    };
+  }
+
+  componentDidMount() {
+    const locale = this.props.locale;
+
+    Modal.setAppElement('#app');
+    document.getElementsByTagName('html')[0].lang = locale;
+    document.getElementsByTagName('html')[0].style.fontSize = this.props.fontSize;
+  }
+
   renderNavBar() {
     const { navbar } = this.props;
 
-    if (navbar) {
-      return (
-        <header className={styles.navbar}>
-          {navbar}
-        </header>
-      );
-    }
+    if (!navbar) return null;
 
-    return false;
+    return (
+      <header className={styles.navbar}>
+        {navbar}
+      </header>
+    );
   }
 
   renderSidebar() {
     const { sidebar } = this.props;
 
-    if (sidebar) {
-      return (
-        <aside className={styles.sidebar}>
-          {sidebar}
-        </aside>
-      );
-    }
+    if (!sidebar) return null;
 
-    return false;
+    return (
+      <aside className={styles.sidebar}>
+        {sidebar}
+      </aside>
+    );
+  }
+
+  renderClosedCaption() {
+    const { closedCaption } = this.props;
+
+    if (!closedCaption) return null;
+
+    return (
+      <div className={styles.closedCaptionBox}>
+        {closedCaption}
+      </div>
+    );
   }
 
   renderUserList() {
-    const { userList } = this.props;
+    const { intl } = this.props;
+    let { userList } = this.props;
+    const { compactUserList } = this.state;
 
-    if (userList) {
-      return (
-        <nav className={styles.userList}>
-          {userList}
-        </nav>
-      );
-    }
+    if (!userList) return null;
 
-    return false;
+    const userListStyle = {};
+    userListStyle[styles.compact] = compactUserList;
+    userList = React.cloneElement(userList, {
+      compact: compactUserList,
+    });
+
+    return (
+      <nav
+        className={cx(styles.userList, userListStyle)}
+        aria-label={intl.formatMessage(intlMessages.userListLabel)}
+      >
+        {userList}
+      </nav>
+    );
   }
 
   renderChat() {
-    const { chat } = this.props;
+    const { chat, intl } = this.props;
 
-    if (chat) {
-      return (
-        <section className={styles.chat} role="log">
-          {chat}
-        </section>
-      );
-    }
+    if (!chat) return null;
 
-    return false;
+    return (
+      <section
+        className={styles.chat}
+        aria-label={intl.formatMessage(intlMessages.chatLabel)}
+      >
+        {chat}
+      </section>
+    );
   }
 
   renderMedia() {
-    const { media } = this.props;
+    const { media, intl } = this.props;
 
-    if (media) {
-      return (
-        <section className={styles.media}>
-          {media}
-        </section>
-      );
-    }
+    if (!media) return null;
 
-    return false;
+    return (
+      <section
+        className={styles.media}
+        aria-label={intl.formatMessage(intlMessages.mediaLabel)}
+      >
+        {media}
+        {this.renderClosedCaption()}
+      </section>
+    );
   }
 
   renderActionsBar() {
-    const { actionsbar } = this.props;
+    const { actionsbar, intl } = this.props;
 
-    if (actionsbar) {
-      return (
-        <section className={styles.actionsbar}>
-          {actionsbar}
-        </section>
-      );
-    }
+    if (!actionsbar) return null;
 
-    return false;
-  }
-
-  renderSettings() {
-    const { settings } = this.props;
-
-    if (settings) {
-      return (
-        <section>
-          {settings}
-        </section>
-      );
-    }
-
-    return false;
-  }
-
-  renderAudioElement() {
     return (
-      <audio id="remote-media" autoplay="autoplay"></audio>
+      <section
+        className={styles.actionsbar}
+        aria-label={intl.formatMessage(intlMessages.actionsBarLabel)}
+      >
+        {actionsbar}
+      </section>
     );
   }
 
   render() {
+    const { params } = this.props;
+
     return (
       <main className={styles.main}>
+        <AudioNotificationContainer />
+        <NotificationsBarContainer />
         <section className={styles.wrapper}>
           {this.renderUserList()}
           {this.renderChat()}
@@ -128,11 +187,14 @@ export default class App extends Component {
           </div>
           {this.renderSidebar()}
         </section>
-        {this.renderSettings()}
-        {this.renderAudioElement()}
+        <ModalContainer />
+        <AudioContainer />
+        <ChatNotificationContainer currentChatID={params.chatID} />
       </main>
     );
   }
 }
 
 App.propTypes = propTypes;
+App.defaultProps = defaultProps;
+export default injectIntl(App);

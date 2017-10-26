@@ -1,29 +1,39 @@
-import React, { Component, PropTypes } from 'react';
+import React, { Component } from 'react';
 import { createContainer } from 'meteor/react-meteor-data';
-
 import Media from './component';
-
-import Button from '../button/component';
-
-import WhiteboardContainer from '../whiteboard/container';
+import MediaService from './service';
+import PresentationAreaContainer from '../presentation/container';
 import VideoDockContainer from '../video-dock/container';
+import ScreenshareContainer from '../screenshare/container';
+import DefaultContent from '../presentation/default-content/component';
 
 const defaultProps = {
-  overlay: <VideoDockContainer/>,
-  content: <WhiteboardContainer/>,
+  overlay: null, // <VideoDockContainer/>,
+  content: <PresentationAreaContainer />,
+  defaultContent: <DefaultContent />,
 };
 
 class MediaContainer extends Component {
   constructor(props) {
     super(props);
 
-    const { overlay, content } = this.props;
+    const { overlay, content, defaultContent } = this.props;
     this.state = {
-      overlay: overlay,
-      content: content,
+      overlay,
+      content: this.props.current_presentation ? content : defaultContent,
     };
 
     this.handleToggleLayout = this.handleToggleLayout.bind(this);
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.current_presentation !== this.props.current_presentation) {
+      if (nextProps.current_presentation) {
+        this.setState({ content: this.props.content });
+      } else {
+        this.setState({ content: this.props.defaultContent });
+      }
+    }
   }
 
   handleToggleLayout() {
@@ -33,11 +43,7 @@ class MediaContainer extends Component {
 
   render() {
     return (
-      <Media overlay={this.state.overlay} content={this.state.content}>
-        <Button
-          label="Toggle Layout"
-          style={{ position: 'absolute', top: '10px', left: '10px' }}
-          onClick={this.handleToggleLayout} />
+      <Media {...this.props}>
         {this.props.children}
       </Media>
     );
@@ -47,5 +53,22 @@ class MediaContainer extends Component {
 MediaContainer.defaultProps = defaultProps;
 
 export default createContainer(() => {
-  return {};
+  const data = {};
+  data.currentPresentation = MediaService.getPresentationInfo();
+
+  data.content = <DefaultContent />;
+
+  if (MediaService.shouldShowWhiteboard()) {
+    data.content = <PresentationAreaContainer />;
+  }
+
+  if (MediaService.shouldShowScreenshare()) {
+    data.content = <ScreenshareContainer />;
+  }
+
+  if (MediaService.shouldShowOverlay()) {
+    data.overlay = <VideoDockContainer />;
+  }
+
+  return data;
 }, MediaContainer);

@@ -8,10 +8,23 @@ $font-size-base:          1rem !default;
 $font-size-large:         1.25rem !default;
 $font-size-small:         .875rem !default;
 
-$line-height-base:        1.428571429 !default; // 20/14
+$line-height-base:        1.25 !default; // 20/16
 $line-height-computed:    floor(($font-size-base * $line-height-base)) !default;
 
 $headings-font-family:    inherit !default;
 $headings-font-weight:    500 !default;
 $headings-line-height:    1.1 !default;
 $headings-color:          inherit !default;
+
+/*
+ * Placeholders
+ * ===============
+ */
+
+%text-elipsis {
+  min-width: 0;
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

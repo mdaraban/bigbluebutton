@@ -23,6 +23,7 @@ package org.bigbluebutton.main.model.users
   
   import org.as3commons.logging.api.ILogger;
   import org.as3commons.logging.api.getClassLogger;
+  import org.bigbluebutton.core.UsersUtil;
 
   public class AutoReconnect
   {
@@ -42,7 +43,11 @@ package org.bigbluebutton.main.model.users
     }
 
     public function onConnectionAttemptFailed():void {
-	  LOGGER.warn("onConnectionAttemptFailed");
+      var logData:Object = UsersUtil.initLogData();
+      logData.attemptNum = _attempt;
+      logData.tags = ["connection"];
+      logData.message = "onConnectionAttemptFailed";
+      LOGGER.warn(JSON.stringify(logData));
       attemptReconnect(_backoff);
     }
 
